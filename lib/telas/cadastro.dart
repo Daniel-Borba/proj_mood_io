@@ -1,89 +1,168 @@
 import 'package:flutter/material.dart';
-import 'login.dart';
+import '../dados_app.dart';
 
-class TelaCadastro extends StatelessWidget {
+class TelaCadastro extends StatefulWidget {
   const TelaCadastro({super.key});
 
   @override
+  State<TelaCadastro> createState() => _TelaCadastroState();
+}
+
+class _TelaCadastroState extends State<TelaCadastro> {
+  final _nomeController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _senhaController = TextEditingController();
+
+  void _cadastrar() {
+    final nome = _nomeController.text.trim();
+    final email = _emailController.text.trim();
+    final senha = _senhaController.text.trim();
+
+    if (nome.isEmpty || email.isEmpty || senha.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Por favor, preencha todos os campos.')),
+      );
+      return;
+    }
+
+    DadosApp.usuarios.add({
+      'nome': nome,
+      'email': email,
+      'senha': senha,
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Conta criada com sucesso! Faça login.')),
+    );
+    Navigator.pop(context);
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
+      backgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
       appBar: AppBar(
-        title: const Text('Crie sua conta no Mood.io'),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: isDark ? Colors.white : Colors.black),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
-      body: Center(
+      body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
+          padding: const EdgeInsets.symmetric(horizontal: 30.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              // Ícone (Emoji de Humor)
-              const Icon(Icons.sentiment_satisfied_alt, size: 80, color: Colors.deepPurple),
-              const SizedBox(height: 48),
+            children: [
+              const SizedBox(height: 20),
+              
+              const Icon(Icons.person_add, size: 80, color: Color(0xFF7E57C2)),
+              const SizedBox(height: 10),
+              
+              const Text(
+                'Criar Conta',
+                style: TextStyle(
+                  fontSize: 32, 
+                  fontWeight: FontWeight.bold, 
+                  color: Color(0xFF7E57C2)
+                ),
+              ),
+              
+              Text(
+                'Junte-se ao Mood.io',
+                style: TextStyle(
+                  color: isDark ? Colors.grey[400] : Colors.grey[600], 
+                  fontSize: 16
+                ),
+              ),
+              
+              const SizedBox(height: 40),
 
               // Campo Nome
-              TextFormField(
+              TextField(
+                controller: _nomeController,
+                style: TextStyle(color: isDark ? Colors.white : Colors.black87),
                 decoration: InputDecoration(
-                  labelText: 'Nome',
-                  prefixIcon: const Icon(Icons.person_outline),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                  hintText: 'Nome Completo',
+                  hintStyle: TextStyle(color: isDark ? Colors.grey[500] : Colors.grey[600]),
+                  prefixIcon: const Icon(Icons.person_outline, color: Colors.grey),
+                  filled: true,
+                  fillColor: isDark ? Colors.grey[900] : Colors.grey[100],
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(30), 
+                    borderSide: BorderSide.none
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 20),
                 ),
               ),
               const SizedBox(height: 20),
 
-              // Campo E-mail
-              TextFormField(
+              // Campo Email
+              TextField(
+                controller: _emailController,
+                keyboardType: TextInputType.emailAddress,
+                style: TextStyle(color: isDark ? Colors.white : Colors.black87),
                 decoration: InputDecoration(
-                  labelText: 'E-mail',
-                  prefixIcon: const Icon(Icons.email_outlined),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                  hintText: 'E-mail',
+                  hintStyle: TextStyle(color: isDark ? Colors.grey[500] : Colors.grey[600]),
+                  prefixIcon: const Icon(Icons.email_outlined, color: Colors.grey),
+                  filled: true,
+                  fillColor: isDark ? Colors.grey[900] : Colors.grey[100],
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(30), 
+                    borderSide: BorderSide.none
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 20),
                 ),
               ),
               const SizedBox(height: 20),
 
               // Campo Senha
-              TextFormField(
+              TextField(
+                controller: _senhaController,
                 obscureText: true,
+                style: TextStyle(color: isDark ? Colors.white : Colors.black87),
                 decoration: InputDecoration(
-                  labelText: 'Senha',
-                  prefixIcon: const Icon(Icons.lock_outline),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                  hintText: 'Senha',
+                  hintStyle: TextStyle(color: isDark ? Colors.grey[500] : Colors.grey[600]),
+                  prefixIcon: const Icon(Icons.lock_outline, color: Colors.grey),
+                  filled: true,
+                  fillColor: isDark ? Colors.grey[900] : Colors.grey[100],
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(30), 
+                    borderSide: BorderSide.none
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 20),
                 ),
               ),
-              const SizedBox(height: 30),
+              const SizedBox(height: 40),
 
               // Botão Cadastrar
-              ElevatedButton(
-                onPressed: () {
-                  // Ação de Cadastro (Poderia navegar para a Home ou de volta para Login)
-                  // Por simplicidade, volta para Login.
-                   Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => const TelaLogin()),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 50),
-                  backgroundColor: Colors.deepPurple,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                ),
-                child: const Text('Cadastrar', style: TextStyle(fontSize: 18)),
-              ),
-              const SizedBox(height: 20),
-
-              // Link Entrar
-              TextButton(
-                onPressed: () {
-                  // Navega de volta para a Tela de Login
-                  Navigator.pop(context); 
-                },
-                child: const Text(
-                  'Já tem conta? Entrar',
-                  style: TextStyle(color: Colors.deepPurple),
+              SizedBox(
+                width: double.infinity,
+                height: 55,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF7E57C2),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                    elevation: 0,
+                  ),
+                  onPressed: _cadastrar,
+                  child: const Text(
+                    'Cadastrar',
+                    style: TextStyle(
+                      fontSize: 18, 
+                      fontWeight: FontWeight.bold, 
+                      color: Colors.white
+                    ),
+                  ),
                 ),
               ),
+              
+              const SizedBox(height: 30),
             ],
           ),
         ),

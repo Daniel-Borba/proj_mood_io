@@ -1,100 +1,133 @@
 import 'package:flutter/material.dart';
-import 'edicao_anotacao.dart';
+import '../dados_app.dart';
 
 class TelaHistorico extends StatelessWidget {
   const TelaHistorico({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          const Text(
-            'Histórico de Humor',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 20),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    final lista = DadosApp.registros;
+    
+    final totalRegistros = lista.length;
+    
+    final int felizes = lista.where((e) => e.humor == 'Feliz' || e.humor == 'Legal').length;
+    final int tristes = lista.where((e) => e.humor == 'Triste' || e.humor == 'Estressado').length;
 
-          // Botões de Filtro
-          Row(
-            children: <Widget>[
-              buildFilterButton('Semana', false),
-              const SizedBox(width: 10),
-              buildFilterButton('Mês', true), // Mês selecionado no design
-              const SizedBox(width: 10),
-              buildFilterButton('Personalizado', false),
-            ],
-          ),
-          const SizedBox(height: 30),
-
-          // Gráfico Placeholder (Substituiria por um pacote como fl_chart)
-          Container(
-            height: 150,
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey.shade300),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            alignment: Alignment.center,
-            child: const Text(
-              '[GRÁFICO DE LINHA - FL_CHART]',
-              style: TextStyle(color: Colors.black54),
-            ),
-          ),
-          const SizedBox(height: 30),
-
-          // Lista de Registros Anteriores
-          const Text(
-            'Registros Recentes',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 10),
-
-          // Cartões de Registro (Exemplos)
-          buildRegistroCard(context, '15 de Outubro de 2023', 'Dia ótimo! Consegui terminar o projeto e saí com amigos.', Icons.sentiment_satisfied_alt),
-          const SizedBox(height: 10),
-          buildRegistroCard(context, '13 de Outubro de 2023', 'Um dia um pouco cansativo, mas produtivo improvisando no tema.', Icons.sentiment_neutral),
-          const SizedBox(height: 10),
-          // Adicione mais cards conforme necessário
-        ],
-      ),
-    );
-  }
-
-  // Helper para os botões de filtro
-  Widget buildFilterButton(String text, bool isSelected) {
-    return ElevatedButton(
-      onPressed: () {},
-      style: ElevatedButton.styleFrom(
-        backgroundColor: isSelected ? Colors.deepPurple : Colors.grey.shade200,
-        foregroundColor: isSelected ? Colors.white : Colors.black87,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+    return Scaffold(
+      backgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
+      appBar: AppBar(
+        title: const Text(
+          'Histórico', 
+          style: TextStyle(color: Color(0xFF7E57C2), fontWeight: FontWeight.bold)
+        ),
+        centerTitle: true,
+        backgroundColor: Colors.transparent,
         elevation: 0,
+        automaticallyImplyLeading: false,
       ),
-      child: Text(text),
+      body: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF7E57C2), Color(0xFF9575CD)]
+                ),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _infoCard("Total", "$totalRegistros"),
+                  _infoCard("Positivos", "$felizes"),
+                  _infoCard("Negativos", "$tristes"),
+                ],
+              ),
+            ),
+            
+            const SizedBox(height: 30),
+            
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                "Atividades Recentes", 
+                style: TextStyle(
+                  fontSize: 18, 
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : Colors.black87
+                )
+              ),
+            ),
+            
+            const SizedBox(height: 10),
+
+            Expanded(
+              child: lista.isEmpty
+                  ? Center(
+                      child: Text(
+                        "Nenhum dado para estatísticas.",
+                        style: TextStyle(color: isDark ? Colors.grey[600] : Colors.grey[400]),
+                      ),
+                    )
+                  : ListView.builder(
+                      itemCount: lista.length,
+                      itemBuilder: (context, index) {
+                        final item = lista[index];
+                        return Card(
+                          elevation: 0,
+                          color: isDark ? Colors.grey[900] : Colors.grey[50],
+                          margin: const EdgeInsets.only(bottom: 10),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            side: BorderSide(
+                              color: isDark ? Colors.grey[800]! : Colors.grey.shade200
+                            ),
+                          ),
+                          child: ListTile(
+                            leading: CircleAvatar(
+                              backgroundColor: const Color(0xFF7E57C2).withAlpha(30),
+                              child: Text(
+                                item.humor[0], 
+                                style: const TextStyle(color: Color(0xFF7E57C2))
+                              ),
+                            ),
+                            title: Text(
+                              item.humor,
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: isDark ? Colors.white : Colors.black87
+                              )
+                            ),
+                            subtitle: Text(
+                              item.data,
+                              style: TextStyle(
+                                color: isDark ? Colors.grey[400] : Colors.grey[600]
+                              )
+                            ),
+                            trailing: item.observacao != null && item.observacao!.isNotEmpty 
+                                ? Icon(Icons.comment, size: 16, color: isDark ? Colors.grey : Colors.grey[400]) 
+                                : null,
+                          ),
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
-  // Helper para os cartões de registro
-  Widget buildRegistroCard(BuildContext context, String data, String resumo, IconData emoji) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      child: ListTile(
-        onTap: () {
-          // Navega para a Tela de Edição/Visualização
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const TelaEdicaoAnotacao()),
-          );
-        },
-        leading: Icon(emoji, color: Colors.deepPurple, size: 30),
-        title: Text(data, style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text(resumo, maxLines: 2, overflow: TextOverflow.ellipsis),
-        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-      ),
+  Widget _infoCard(String label, String valor) {
+    return Column(
+      children: [
+        Text(valor, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
+        Text(label, style: const TextStyle(fontSize: 12, color: Colors.white70)),
+      ],
     );
   }
 }

@@ -1,119 +1,123 @@
 import 'package:flutter/material.dart';
+import '../models/registro_humor.dart';
 
-class TelaAnotacao extends StatelessWidget {
-  const TelaAnotacao({super.key});
+class TelaAnotacao extends StatefulWidget {
+  final RegistroHumor? registroParaEditar;
+
+  const TelaAnotacao({super.key, this.registroParaEditar});
+
+  @override
+  State<TelaAnotacao> createState() => _TelaAnotacaoState();
+}
+
+class _TelaAnotacaoState extends State<TelaAnotacao> {
+  final _formKey = GlobalKey<FormState>();
+  final _observacaoController = TextEditingController();
+  
+  final Map<String, String> _humores = {
+    'Feliz': '😄', 'Legal': '😎', 'Normal': '😐', 'Estressado': '😡', 'Triste': '😢',
+  };
+  
+  String? _humorSelecionado;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.registroParaEditar != null) {
+      _humorSelecionado = widget.registroParaEditar!.humor;
+      _observacaoController.text = widget.registroParaEditar!.observacao ?? '';
+    }
+  }
+
+  void _salvar() {
+    if (_formKey.currentState!.validate()) {
+      final dataFinal = widget.registroParaEditar != null 
+          ? widget.registroParaEditar!.data 
+          : _gerarDataAtual();
+
+      final novoRegistro = RegistroHumor(
+        id: widget.registroParaEditar?.id,
+        data: dataFinal,
+        humor: _humorSelecionado!,
+        observacao: _observacaoController.text,
+      );
+
+      Navigator.pop(context, novoRegistro);
+    }
+  }
+
+  String _gerarDataAtual() {
+    final agora = DateTime.now();
+    return "${agora.day}/${agora.month} - ${agora.hour}:${agora.minute.toString().padLeft(2, '0')}";
+  }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final titulo = widget.registroParaEditar == null ? 'Novo Registro' : 'Editar Registro';
+
     return Scaffold(
+      backgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
       appBar: AppBar(
-        title: const Text('Novo Registro'),
-        leading: IconButton(
-          icon: const Icon(Icons.close),
-          onPressed: () => Navigator.pop(context), // Botão 'X' para fechar
-        ),
+        title: Text(titulo, style: TextStyle(color: isDark ? Colors.white : Colors.black, fontWeight: FontWeight.bold)),
+        centerTitle: true,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        iconTheme: IconThemeData(color: isDark ? Colors.white : Colors.black),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            // Seleção de Humor (Emojis)
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: <Widget>[
-                // Emojis de 😟 a 😁
-                buildMoodEmoji(Icons.sentiment_very_dissatisfied),
-                buildMoodEmoji(Icons.sentiment_dissatisfied),
-                buildMoodEmoji(Icons.sentiment_neutral, isSelected: true), // Exemplo selecionado
-                buildMoodEmoji(Icons.sentiment_satisfied),
-                buildMoodEmoji(Icons.sentiment_very_satisfied),
-              ],
-            ),
-            const SizedBox(height: 30),
-
-            // Campo de Texto para Anotações
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const TextField(
-                maxLines: 5,
-                decoration: InputDecoration(
-                  hintText: 'Escreva como foi seu dia...',
-                  border: InputBorder.none,
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              children: [
+                DropdownButtonFormField<String>(
+                  value: _humorSelecionado,
+                  dropdownColor: isDark ? Colors.grey[800] : Colors.white,
+                  decoration: InputDecoration(
+                    labelText: "Humor",
+                    labelStyle: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[600]),
+                    filled: true,
+                    fillColor: isDark ? Colors.grey[900] : Colors.grey[100],
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
+                  ),
+                  style: TextStyle(color: isDark ? Colors.white : Colors.black, fontSize: 16),
+                  items: _humores.entries.map((entry) {
+                    return DropdownMenuItem(value: entry.key, child: Row(children: [Text(entry.value, style: const TextStyle(fontSize: 24)), const SizedBox(width: 10), Text(entry.key)]));
+                  }).toList(),
+                  onChanged: (v) => setState(() => _humorSelecionado = v),
+                  validator: (v) => v == null ? 'Por favor, escolha um humor' : null,
                 ),
-              ),
-            ),
-            const SizedBox(height: 30),
-
-            // Tags/Atividades
-            const Text(
-              'Adicionar Tags/Atividades',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 15),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: <Widget>[
-                buildActivityTag('trabalho', Icons.work),
-                const SizedBox(width: 15),
-                buildActivityTag('amigos', Icons.people_outline),
-                const SizedBox(width: 15),
-                buildActivityTag('exercício', Icons.directions_run, isSelected: true), // Exemplo selecionado
+                const SizedBox(height: 20),
+                TextFormField(
+                  controller: _observacaoController,
+                  maxLines: 5,
+                  style: TextStyle(color: isDark ? Colors.white : Colors.black),
+                  decoration: InputDecoration(
+                    labelText: 'Observações (Opcional)',
+                    labelStyle: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[600]),
+                    alignLabelWithHint: true,
+                    filled: true,
+                    fillColor: isDark ? Colors.grey[900] : Colors.grey[100],
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
+                  ),
+                ),
+                const SizedBox(height: 40),
+                SizedBox(
+                  height: 55,
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _salvar,
+                    style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF7E57C2)),
+                    child: const Text('Salvar', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                  ),
+                ),
               ],
             ),
-            const SizedBox(height: 50),
-
-            // Botão Salvar Registro
-            ElevatedButton(
-              onPressed: () {
-                // Ação de Salvar Registro e voltar
-                Navigator.pop(context);
-              },
-              style: ElevatedButton.styleFrom(
-                minimumSize: const Size(double.infinity, 50),
-                backgroundColor: Colors.deepPurple,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-              ),
-              child: const Text('Salvar Registro', style: TextStyle(fontSize: 18)),
-            ),
-          ],
+          ),
         ),
       ),
-    );
-  }
-
-  // Helper para os Emojis
-  Widget buildMoodEmoji(IconData icon, {bool isSelected = false}) {
-    return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: isSelected
-            ? Border.all(color: Colors.deepPurple, width: 2)
-            : null,
-      ),
-      child: Icon(icon,
-          size: 40, color: isSelected ? Colors.deepPurple : Colors.black38),
-    );
-  }
-
-  // Helper para as Tags de Atividade
-  Widget buildActivityTag(String label, IconData icon, {bool isSelected = false}) {
-    return Column(
-      children: [
-        CircleAvatar(
-          radius: 25,
-          backgroundColor: isSelected ? Colors.deepPurple : Colors.grey.shade200,
-          child: Icon(icon, size: 20, color: isSelected ? Colors.white : Colors.black54),
-        ),
-        const SizedBox(height: 4),
-        Text(label, style: TextStyle(fontSize: 12, color: isSelected ? Colors.deepPurple : Colors.black54)),
-      ],
     );
   }
 }

@@ -1,85 +1,117 @@
 import 'package:flutter/material.dart';
+import 'principal.dart';
 import 'cadastro.dart';
-import 'home.dart'; // Importa a Home para navegação após o login
+import '../dados_app.dart';
 
-class TelaLogin extends StatelessWidget {
+class TelaLogin extends StatefulWidget {
   const TelaLogin({super.key});
+
+  @override
+  State<TelaLogin> createState() => _TelaLoginState();
+}
+
+class _TelaLoginState extends State<TelaLogin> {
+  final _emailController = TextEditingController();
+  final _senhaController = TextEditingController();
+
+  void _fazerLogin() {
+    final email = _emailController.text.trim();
+    final senha = _senhaController.text.trim();
+
+    if (email.isEmpty || senha.isEmpty) {
+      _mostrarErro("Por favor, informe e-mail e senha.");
+      return;
+    }
+
+    try {
+      final usuarioEncontrado = DadosApp.usuarios.firstWhere(
+        (user) => user['email'] == email && user['senha'] == senha,
+      );
+
+      DadosApp.usuarioLogado = usuarioEncontrado;
+      
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const TelaPrincipal()),
+      );
+
+    } catch (e) {
+      _mostrarErro("Credenciais inválidas ou usuário não cadastrado.");
+    }
+  }
+
+  void _mostrarErro(String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(msg),
+        backgroundColor: Colors.redAccent,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 30.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              // Ícone (Emoji de Humor)
-              const Icon(Icons.sentiment_satisfied_alt, size: 80, color: Colors.deepPurple),
-              const SizedBox(height: 16),
-              const Text(
-                'Mood.io',
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.deepPurple,
-                ),
-              ),
-              const SizedBox(height: 48),
+            children: [
+              const Icon(Icons.mood, size: 80, color: Color(0xFF7E57C2)),
+              const SizedBox(height: 10),
+              const Text('Mood.io', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Color(0xFF7E57C2))),
+              const SizedBox(height: 50),
 
-              // Campo E-mail
-              TextFormField(
+              TextField(
+                controller: _emailController,
                 decoration: InputDecoration(
-                  labelText: 'E-mail',
-                  prefixIcon: const Icon(Icons.email_outlined),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                  hintText: 'E-mail',
+                  prefixIcon: const Icon(Icons.email_outlined, color: Colors.grey),
+                  filled: true,
+                  fillColor: Colors.grey[100],
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(30), borderSide: BorderSide.none),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 20),
                 ),
               ),
               const SizedBox(height: 20),
 
-              // Campo Senha
-              TextFormField(
+              TextField(
+                controller: _senhaController,
                 obscureText: true,
                 decoration: InputDecoration(
-                  labelText: 'Senha',
-                  prefixIcon: const Icon(Icons.lock_outline),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                  hintText: 'Senha',
+                  prefixIcon: const Icon(Icons.lock_outline, color: Colors.grey),
+                  filled: true,
+                  fillColor: Colors.grey[100],
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(30), borderSide: BorderSide.none),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 20),
                 ),
               ),
-              const SizedBox(height: 30),
+              const SizedBox(height: 40),
 
-              // Botão Entrar
-              ElevatedButton(
-                onPressed: () {
-                  // Ação de Login (Navega para a Home)
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => const TelaPrincipal()),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 50),
-                  backgroundColor: Colors.deepPurple,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              SizedBox(
+                width: double.infinity,
+                height: 55,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF7E57C2),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                  ),
+                  onPressed: _fazerLogin,
+                  child: const Text('Entrar', style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold)),
                 ),
-                child: const Text('Entrar', style: TextStyle(fontSize: 18)),
               ),
+              
               const SizedBox(height: 20),
 
-              // Link Cadastre-se
               TextButton(
                 onPressed: () {
-                  // Navega para a Tela de Cadastro
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const TelaCadastro()),
-                  );
+                   Navigator.push(context, MaterialPageRoute(builder: (c) => const TelaCadastro()));
                 },
-                child: const Text(
-                  'Não tem conta? Cadastre-se',
-                  style: TextStyle(color: Colors.deepPurple),
-                ),
+                child: const Text('Não tem conta? Cadastre-se', style: TextStyle(color: Colors.grey)),
               ),
             ],
           ),
